@@ -14,7 +14,7 @@
                         /(~S1\[)(([^\\]|\\[^\]])*)(~S1\])/g,
                         /(~D~D)(([^\\\$]|\\.)*)(~D~D)/g);
 
-                    for (i = 0; i < regex.length; i++) {
+                    for (var i = 0; i < regex.length; i++) {
                         result = result.replace(regex[i], function(match, prefix, content, dumb, suffix) {
                             return prefix.replace(/\[/, "\\[").replace(/\(/, "\\(") +
                                 content.replace(/~S1/g, "\\\\").replace(/([`*_{}\[\]()>#+-.!\\`])/g, "\\$1") +

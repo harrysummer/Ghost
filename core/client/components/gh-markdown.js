@@ -27,6 +27,9 @@ var Markdown = Ember.Component.extend({
             dropzones.on('uploadfailure', Ember.run.bind(this, 'sendAction', 'uploadFinished'));
             dropzones.on('uploadsuccess', Ember.run.bind(this, 'sendAction', 'uploadFinished'));
             dropzones.on('uploadsuccess', Ember.run.bind(this, 'sendAction', 'uploadSuccess'));
+
+            // Render mathjax equations
+            MathJax.Hub.Queue(["PreProcess",MathJax.Hub,$(".rendered-markdown")[0]]);
         }
 
         Ember.run.scheduleOnce('afterRender', this, handleDropzoneEvents);

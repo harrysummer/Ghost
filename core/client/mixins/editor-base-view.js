@@ -24,6 +24,9 @@ var EditorViewMixin = Ember.Mixin.create({
             target: this.$('.js-entry-preview'),
             offset: 10
         }));
+
+        // Reender all the math equations
+        MathJax.Hub.Queue(["PreProcess",MathJax.Hub,$(".rendered-markdown")[0]]);
     },
 
     removeScrollHandlers: function () {

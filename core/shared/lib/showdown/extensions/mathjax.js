@@ -10,9 +10,9 @@
 
                     // then, detect for \( ... \), \[ ... \] blocks...
                     var regex = Array(
-                        /(~S1\()(([^\\]|\\[^\)])*)(~S1\))/g,
-                        /(~S1\[)(([^\\]|\\[^\]])*)(~S1\])/g,
-                        /(~D~D)(([^\\\$]|\\.)*)(~D~D)/g);
+                        /(~S1\()(([^~]|~[^S]|~S[^1]|~S1[^\)])*)(~S1\))/g,
+                        /(~S1\[)(([^~]|~[^S]|~S[^1]|~S1[^\]])*)(~S1\])/g,
+                        /(~D~D)(([^~]|~[^~D]|~D[^~]|~D~[^D])*)(~D~D)/g);
 
                     for (var i = 0; i < regex.length; i++) {
                         result = result.replace(regex[i], function(match, prefix, content, dumb, suffix) {

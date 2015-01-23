@@ -633,7 +633,7 @@ var _              = require('lodash'),
                         'bower_components/ember-simple-auth/simple-auth-oauth2.js',
                         'bower_components/google-caja/html-css-sanitizer-bundle.js',
                         'bower_components/nanoscroller/bin/javascripts/jquery.nanoscroller.js',
-                        'bower_components/xxhash/build/xxhash.imd.js',
+                        'bower_components/xxhash/build/xxhash.lmd.js',
 
                         'core/shared/lib/showdown/extensions/ghostimagepreview.js',
                         'core/shared/lib/showdown/extensions/ghostgfm.js',

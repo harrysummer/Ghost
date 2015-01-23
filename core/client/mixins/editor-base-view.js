@@ -26,7 +26,14 @@ var EditorViewMixin = Ember.Mixin.create({
         }));
 
         // Reender all the math equations
-        MathJax.Hub.Queue(["PreProcess",MathJax.Hub,$(".rendered-markdown")[0]]);
+        MathJax.Hub.Queue(["Typeset",MathJax.Hub,$(".rendered-markdown")[0], function() {
+            MathJax.Cache = {};
+            var hash = XXH(0xABCD);
+            $("script[type='math/tex']").each(function(index,dom) {
+                var key = hash.update($(dom).html()).digest();
+                MathJax.Cache[key] = $(dom).prev()[0];
+            });
+        }]);
     },
 
     removeScrollHandlers: function () {

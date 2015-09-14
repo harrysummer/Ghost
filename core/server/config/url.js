@@ -9,10 +9,51 @@ var moment            = require('moment'),
 // Simple utility function to allow
 // passing of the ghostConfig
 // object here to be used locally
-// to ensure clean depedency graph
+// to ensure clean dependency graph
 // (i.e. no circular dependencies).
 function setConfig(config) {
     ghostConfig = config;
+}
+
+function getBaseUrl(secure) {
+    return (secure && ghostConfig.urlSSL) ? ghostConfig.urlSSL : ghostConfig.url;
+}
+
+function urlJoin() {
+    var args = Array.prototype.slice.call(arguments),
+        prefixDoubleSlash = false,
+        subdir = ghostConfig.paths.subdir.replace(/\//g, ''),
+        subdirRegex,
+        url;
+
+    // Remove empty item at the beginning
+    if (args[0] === '') {
+        args.shift();
+    }
+
+    // Handle schemeless protocols
+    if (args[0].indexOf('//') === 0) {
+        prefixDoubleSlash = true;
+    }
+
+    // join the elements using a slash
+    url = args.join('/');
+
+    // Fix multiple slashes
+    url = url.replace(/(^|[^:])\/\/+/g, '$1/');
+
+    // Put the double slash back at the beginning if this was a schemeless protocol
+    if (prefixDoubleSlash) {
+        url = url.replace(/^\//, '//');
+    }
+
+    // Deduplicate subdirectory
+    if (subdir) {
+        subdirRegex = new RegExp(subdir + '\/' + subdir);
+        url = url.replace(subdirRegex, subdir);
+    }
+
+    return url;
 }
 
 // ## createUrl
@@ -32,20 +73,16 @@ function setConfig(config) {
 function createUrl(urlPath, absolute, secure) {
     urlPath = urlPath || '/';
     absolute = absolute || false;
-    var output = '', baseUrl;
+    var base;
 
     // create base of url, always ends without a slash
     if (absolute) {
-        baseUrl = (secure && ghostConfig.urlSSL) ? ghostConfig.urlSSL : ghostConfig.url;
-        output += baseUrl.replace(/\/$/, '');
+        base = getBaseUrl(secure);
     } else {
-        output += ghostConfig.paths.subdir;
+        base = ghostConfig.paths.subdir;
     }
 
-    // append the path, always starts and ends with a slash
-    output += urlPath;
-
-    return output;
+    return urlJoin(base, urlPath);
 }
 
 // ## urlPathForPost
@@ -89,7 +126,7 @@ function urlPathForPost(post, permalinks) {
 // Usage:
 // urlFor('home', true) -> http://my-ghost-blog.com/
 // E.g. /blog/ subdir
-// urlFor({relativeUrl: '/my-static-page/') -> /blog/my-static-page/
+// urlFor({relativeUrl: '/my-static-page/'}) -> /blog/my-static-page/
 // E.g. if post object represents welcome post, and slugs are set to standard
 // urlFor('post', {...}) -> /welcome-to-ghost/
 // E.g. if post object represents welcome post, and slugs are set to date
@@ -102,13 +139,15 @@ function urlPathForPost(post, permalinks) {
 function urlFor(context, data, absolute) {
     var urlPath = '/',
         secure, imagePathRe,
-        knownObjects = ['post', 'tag', 'author', 'image'], baseUrl,
+        knownObjects = ['post', 'tag', 'author', 'image', 'nav'], baseUrl,
+        hostname,
 
     // this will become really big
     knownPaths = {
         home: '/',
         rss: '/rss/',
-        api: '/ghost/api/v0.1'
+        api: '/ghost/api/v0.1',
+        sitemap_xsl: '/sitemap.xsl'
     };
 
     // Make data properly optional
@@ -128,10 +167,10 @@ function urlFor(context, data, absolute) {
             urlPath = data.post.url;
             secure = data.secure;
         } else if (context === 'tag' && data.tag) {
-            urlPath = '/tag/' + data.tag.slug + '/';
+            urlPath = urlJoin('/', ghostConfig.routeKeywords.tag, data.tag.slug, '/');
             secure = data.tag.secure;
         } else if (context === 'author' && data.author) {
-            urlPath = '/author/' + data.author.slug + '/';
+            urlPath = urlJoin('/', ghostConfig.routeKeywords.author, data.author.slug, '/');
             secure = data.author.secure;
         } else if (context === 'image' && data.image) {
             urlPath = data.image;
@@ -142,15 +181,27 @@ function urlFor(context, data, absolute) {
             if (absolute) {
                 // Remove the sub-directory from the URL because ghostConfig will add it back.
                 urlPath = urlPath.replace(new RegExp('^' + ghostConfig.paths.subdir), '');
-                baseUrl = (secure && ghostConfig.urlSSL) ? ghostConfig.urlSSL : ghostConfig.url;
-                baseUrl = baseUrl.replace(/\/$/, '');
+                baseUrl = getBaseUrl(secure).replace(/\/$/, '');
                 urlPath = baseUrl + urlPath;
             }
 
             return urlPath;
-        } else if (context === 'sitemap-xsl') {
-            absolute = true;
-            urlPath = '/sitemap.xsl';
+        } else if (context === 'nav' && data.nav) {
+            urlPath = data.nav.url;
+            baseUrl = getBaseUrl(secure);
+            hostname = baseUrl.split('//')[1] + ghostConfig.paths.subdir;
+            if (urlPath.indexOf(hostname) > -1
+                && urlPath.indexOf('.' + hostname) === -1
+                && urlPath.indexOf('mailto:') !== 0) {
+                // make link relative to account for possible
+                // mismatch in http/https etc, force absolute
+                // do not do so if link is a subdomain of blog url
+                urlPath = urlPath.split(hostname)[1];
+                if (urlPath.substring(0, 1) !== '/') {
+                    urlPath = '/' + urlPath;
+                }
+                absolute = true;
+            }
         }
         // other objects are recognised but not yet supported
     } else if (_.isString(context) && _.indexOf(_.keys(knownPaths), context) !== -1) {
@@ -158,9 +209,15 @@ function urlFor(context, data, absolute) {
         urlPath = knownPaths[context] || '/';
     }
 
+    // This url already has a protocol so is likely an external url to be returned
+    if (urlPath && (urlPath.indexOf('://') !== -1 || urlPath.indexOf('mailto:') === 0)) {
+        return urlPath;
+    }
+
     return createUrl(urlPath, absolute, secure);
 }
 
 module.exports.setConfig = setConfig;
+module.exports.urlJoin = urlJoin;
 module.exports.urlFor = urlFor;
 module.exports.urlPathForPost = urlPathForPost;

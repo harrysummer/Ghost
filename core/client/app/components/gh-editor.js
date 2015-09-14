@@ -24,6 +24,16 @@ export default Ember.Component.extend({
             target: this.$('.js-entry-preview'),
             offset: 10
         }));
+
+        // Render all the math equations
+        var hash = XXH(0xABCD);
+        MathJax.Cache = {};
+        MathJax.Hub.Queue(["Typeset",MathJax.Hub,$(".rendered-markdown")[0], function() {
+            $("script[type*='math/tex']").each(function(index,dom) {
+                var key = hash.update($(dom).attr("type") + $(dom).html()).digest();
+                MathJax.Cache[key] = Array(0, $(dom).prev().clone());
+            });
+        }]);
     },
 
     willDestroyElement: function () {

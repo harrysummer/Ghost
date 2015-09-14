@@ -49,6 +49,7 @@ app.import('bower_components/showdown-ghost/src/extensions/ghostgfm.js');
 app.import('bower_components/showdown-ghost/src/extensions/ghostimagepreview.js');
 app.import('bower_components/showdown-ghost/src/extensions/footnotes.js');
 app.import('bower_components/showdown-ghost/src/extensions/highlight.js');
+app.import('vendor/mathjax/mathjax.js');
 app.import('bower_components/moment/moment.js');
 app.import('bower_components/keymaster/keymaster.js');
 app.import('bower_components/devicejs/lib/device.js');
@@ -67,6 +68,7 @@ app.import('bower_components/codemirror/mode/javascript/javascript.js');
 app.import('bower_components/xregexp/xregexp-all.js');
 app.import('bower_components/password-generator/lib/password-generator.js');
 app.import('bower_components/blueimp-md5/js/md5.js');
+app.import('bower_components/xxhash/build/xxhash.lmd.js');
 
 // 'dem Styles
 app.import('bower_components/codemirror/lib/codemirror.css');

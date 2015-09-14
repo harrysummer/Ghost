@@ -33,6 +33,29 @@ var Preview = Ember.Component.extend({
 
         // Set the current height so we can listen
         this.sendAction('updateHeight', this.$().height());
+
+        // Render mathjax equations
+        var hash = XXH(0xABCD);
+        MathJax.Hub.Queue(["PreProcess",MathJax.Hub,$(".rendered-markdown")[0], function() {
+            $(".MathJax_Preview").empty();
+            $("script[type*='math/tex']").each(function(index,dom){
+                var key = hash.update($(dom).attr("type") + $(dom).html()).digest();
+                if (typeof(MathJax.Cache) != "undefined" && key in MathJax.Cache) {
+                    MathJax.Cache[key][0] = 1;
+                    $(dom).before(MathJax.Cache[key][1].clone());
+                } else {
+                    MathJax.Hub.Queue(["Process", MathJax.Hub, dom, function() {
+                        MathJax.Cache[key] = Array(1, $(dom).prev().clone());
+                      }]);
+                }
+            });
+            for (var key in MathJax.Cache) {
+                if (MathJax.Cache[key][0] == 0)
+                    delete MathJax.Cache[key];
+                else
+                    MathJax.Cache[key][0] = 0;
+            }
+        }]);
     },
 
     // fire off 'enable' API function from uploadManager

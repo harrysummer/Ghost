@@ -29,6 +29,7 @@
     "showdown-ghost": "0.3.6",
     "sinonjs": "1.14.1",
     "validator-js": "3.39.0",
+    "xxhash": "*",
     "xregexp": "2.0.0"
   }
 }
